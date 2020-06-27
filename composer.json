@@ -1,0 +1,32 @@
+{
+    "name": "larvabug/larvabug-laravel",
+    "description": "Larvabug monitoring",
+    "require": {
+        "php": ">=7.1",
+        "illuminate/support": "5.0 - 5.8",
+        "ext-curl": "*"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Larvabug",
+            "email": "larvabugmonitor@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "LarvaBug\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "LarvaBug\\Provider\\ServiceProvider"
+            ],
+            "aliases": {
+                "LarvaBug": "LarvaBug\\Facade"
+            }
+        }
+    },
+    "minimum-stability": "dev"
+}
