@@ -45,15 +45,20 @@ class PrepareExceptionData
         $data['exception'] = $exception->getMessage();
         $data['class'] = get_class($exception);
         $data['file'] = $exception->getFile();
-        $data['enviroment'] = App::environment();
+        $data['php_version'] = PHP_VERSION;
+        $data['server_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
+        $data['environment'] = App::environment();
         $data['server_name'] = @gethostname();
         $data['browser'] = $this->getUserBrowser();
         $data['userOs'] = $this->getUserOS();
         $data['host'] = Request::server('SERVER_NAME');
         $data['method'] = Request::method();
         $data['fullUrl'] = Request::fullUrl();
+        $data['url'] = Request::path();
+        $data['userIp'] = Request::ip();
         $data['line'] = $exception->getLine();
-        $data['date_time'] = date("Y-m-d H:i:s");;
+        $data['date_time'] = date("Y-m-d H:i:s");
+        $data['session_id'] = Session::getId();
         $data['storage'] = [
             'SERVER' => [
                 'USER' => Request::server('USER'),
@@ -79,7 +84,7 @@ class PrepareExceptionData
         $count = config('larvabug.lines_count');
 
         if (!$count || $count > 12) {
-            $count = 5;
+            $count = 10;
         }
 
         $lines = file($data['file']);

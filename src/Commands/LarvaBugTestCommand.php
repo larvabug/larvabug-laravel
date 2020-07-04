@@ -51,11 +51,17 @@ class LarvaBugTestCommand extends Command
             $this->info('2. ✗ [Larvabug] Could not find LarvaBug secret, please set this in your .env');
         }
 
+        $requestData = [
+            'projectId' => config('larvabug.project_id'),
+            'projectSecret' => config('larvabug.project_secret')
+        ];
+
+        if (app('larvabug') && app('larvabug')->validateCredentials($requestData)){
+            $this->info('3. ✓ [Larvabug] Validation Success');
+        }else{
+            $this->info('3. ✗ [Larvabug] Project id and secret do not match our records');
+        }
 
     }
 
-    public function testCredentials()
-    {
-
-    }
 }

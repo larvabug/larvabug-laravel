@@ -53,7 +53,7 @@ class LarvaBugExceptionHandler
      *
      * @return bool
      */
-    public function checkAppEnvironment()
+    private function checkAppEnvironment()
     {
         if (!config('larvabug.environment')){
             return false;
@@ -79,5 +79,10 @@ class LarvaBugExceptionHandler
         }
 
         return false;
+    }
+
+    public function validateCredentials(array $credentials)
+    {
+        return $this->client->validateCredentials($credentials);
     }
 }

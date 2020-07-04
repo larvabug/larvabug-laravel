@@ -17,13 +17,15 @@ class HttpClient
      */
     private $projectSecret;
 
-    private const URL = 'http://larvabug.local/api/v1/exception';
+    //Development
+    private const POST_EXCEPTION = 'http://dev.larvabug.com/api/v1/exception';
+    private const VALIDATE_CREDENTIALS = 'http://dev.larvabug.com/api/validate/credentials';
 
     /**
      * @param string $projectId
      * @param string $projectSecret
      */
-    public function __construct(string $projectId, string $projectSecret)
+    public function __construct(string $projectId = null, string $projectSecret = null)
     {
         $this->projectId = $projectId;
         $this->projectSecret = $projectSecret;
@@ -39,30 +41,53 @@ class HttpClient
         try {
             $data_string = json_encode($exceptionData);
 
-            $header = [
-                'Content-Type:application/json',
-                'Authorization-APP:' . $this->projectId,
-                'Authorization-KEY:' . $this->projectSecret
-            ];
+            $result = $this->postRequest($data_string,self::POST_EXCEPTION);
 
-            $ch = curl_init(self::URL);
-
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-            $result = curl_exec($ch);
-
-            curl_close($ch);
-
-            if ($result && $result != 404){
-                Session::put('lb.lastExceptionId', $result);
+            if ($result &&
+                isset($result['status']) &&
+                isset($result['exceptionId']) &&
+                $result['status'] == 200
+            ){
+                Session::put('lb.lastExceptionId', $result['exceptionId']);
             }
 
             return true;
         }catch (\Exception $exception) {
             return false;
         }
+    }
+
+    public function validateCredentials(array $credentials)
+    {
+        $result = $this->postRequest($credentials,self::VALIDATE_CREDENTIALS);
+
+        if ($result && isset($result['status']) && $result['status'] ==  200){
+            return true;
+        }
+
+        return false;
+
+    }
+
+    private function postRequest($requestData, $url)
+    {
+        $header = [
+            'Content-Type:application/json',
+            'Authorization-APP:' . $this->projectId,
+            'Authorization-KEY:' . $this->projectSecret
+        ];
+
+        $ch = curl_init($url);
+
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $requestData);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $result = curl_exec($ch);
+
+        curl_close($ch);
+
+        return $result;
     }
 
 }
