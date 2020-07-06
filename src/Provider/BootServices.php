@@ -4,27 +4,53 @@
 namespace LarvaBug\Provider;
 
 
+use Illuminate\Support\Facades\Route;
 use LarvaBug\Commands\LarvaBugTestCommand;
 
 trait BootServices
 {
+    /**
+     * List of commands to be registered along with provider
+     *
+     * @var string[]
+     */
     protected $commands = [
         LarvaBugTestCommand::class
     ];
 
-    protected function bootServices()
+    /**
+     * BootServices method contains all service that needs to be registered
+     */
+    private function bootServices()
     {
         $this->publishConfig();
         $this->registerView();
         $this->registerCommands();
+        $this->mapLaraBugApiRoutes();
     }
 
-    protected function registerView()
+    /**
+     * Register view directory with larvabug namespace
+     */
+    private function registerView()
     {
-        $this->app['view']->addNamespace('larvabug',__DIR__.'../../resources/views');
+        $this->app['view']->addNamespace('larvabug',__DIR__.'/../../resources/views');
     }
 
-    protected function publishConfig()
+    /**
+     * Map api routes directory to enable all api routes for larvabug
+     */
+    private function mapLaraBugApiRoutes()
+    {
+        Route::namespace('\LarvaBug\Http\Controllers')
+            ->prefix('larvabug-api')
+            ->group(__DIR__ . '/../../routes/api.php');
+    }
+
+    /**
+     * Publish package config files that contains package configurations
+     */
+    private function publishConfig()
     {
         if (function_exists('config_path')) {
             $this->publishes([
@@ -33,7 +59,10 @@ trait BootServices
         }
     }
 
-    public function registerCommands()
+    /**
+     * Register array of commands
+     */
+    private function registerCommands()
     {
         $this->commands($this->commands);
     }

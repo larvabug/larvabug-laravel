@@ -13,11 +13,17 @@ class ServiceProvider extends BaseServiceProvider
 {
     use BootServices;
 
+    /**
+     * boot method of service provider
+     */
     public function boot()
     {
         $this->bootServices();
     }
 
+    /**
+     * Register method of service provider
+     */
     public function register()
     {
         $this->app->singleton('larvabug',function ($app){

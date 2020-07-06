@@ -4,6 +4,7 @@
 namespace LarvaBug\Client;
 
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 
 class HttpClient
@@ -19,7 +20,9 @@ class HttpClient
 
     //Development
     private const POST_EXCEPTION = 'http://dev.larvabug.com/api/v1/exception';
-    private const VALIDATE_CREDENTIALS = 'http://dev.larvabug.com/api/validate/credentials';
+    private const VALIDATE_CREDENTIALS = 'http://dev.larvabug.com/api/v1/validate/credentials';
+    private const POST_FEEDBACK = 'http://dev.larvabug.com/api/v1/feedback/submit';
+
 
     /**
      * @param string $projectId
@@ -48,7 +51,7 @@ class HttpClient
                 isset($result['exceptionId']) &&
                 $result['status'] == 200
             ){
-                Session::put('lb.lastExceptionId', $result['exceptionId']);
+                app('larvabug')->setLastExceptionId($result['exceptionId']);
             }
 
             return true;
@@ -57,9 +60,16 @@ class HttpClient
         }
     }
 
+    /**
+     * Validate env project id and secret
+     *
+     * @param array $credentials
+     * @return bool
+     * @author Syed Faisal <sfkazmi0@gmail.com>
+     */
     public function validateCredentials(array $credentials)
     {
-        $result = $this->postRequest($credentials,self::VALIDATE_CREDENTIALS);
+        $result = $this->postRequest(json_encode($credentials),self::VALIDATE_CREDENTIALS);
 
         if ($result && isset($result['status']) && $result['status'] ==  200){
             return true;
@@ -69,6 +79,13 @@ class HttpClient
 
     }
 
+    /**
+     * Curl Request
+     *
+     * @param $requestData
+     * @param $url
+     * @return bool|mixed
+     */
     private function postRequest($requestData, $url)
     {
         $header = [
@@ -87,7 +104,29 @@ class HttpClient
 
         curl_close($ch);
 
-        return $result;
+        if ($result) {
+            return json_decode($result, true);
+        }
+
+        return false;
+    }
+
+    /**
+     * Submit last exception feedback
+     *
+     * @param $data
+     * @return bool
+     */
+    public function submitFeedback($data)
+    {
+        $result = $this->postRequest(json_encode($data),self::POST_FEEDBACK);
+
+        if ($result && isset($result['status']) && $result['status'] ==  200){
+            return true;
+        }
+
+        return false;
+
     }
 
 }

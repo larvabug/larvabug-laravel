@@ -161,6 +161,11 @@ class PrepareExceptionData
         return $response;
     }
 
+    /**
+     * get auth user if exists
+     *
+     * @return |null
+     */
     private function getAuthUser()
     {
         if (function_exists('auth') && auth()->check()) {
