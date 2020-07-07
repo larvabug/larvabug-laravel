@@ -5,6 +5,7 @@ namespace LarvaBug\Handler;
 
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\URL;
 use LarvaBug\Client\HttpClient;
@@ -38,21 +39,53 @@ class LarvaBugExceptionHandler
         $this->exceptionData = $exceptionData;
     }
 
+    /**
+     * Report exception to larvabug
+     *
+     * @param \Throwable $exception
+     * @return bool
+     */
     public function report(\Throwable $exception)
     {
-        if (!$this->checkAppEnvironment()){
+        try {
+            if (!$this->checkAppEnvironment()) {
+                return false;
+            }
+
+            if ($this->skipError(get_class($exception))) {
+                return false;
+            }
+
+            $data = $this->exceptionData->prepareException($exception);
+
+            $this->client->report($data);
+
+            return true;
+        }catch (\Exception $exception){
+            Log::info('Lavabug Exception :'.$exception->getMessage());
             return false;
         }
+    }
 
-        if ($this->skipError(get_class($exception))){
+    /**
+     * Log details to larvabug
+     *
+     * @param $message
+     * @param array $meta
+     * @return bool
+     */
+    public function log($message, array $meta = [])
+    {
+        try {
+            $data = $this->exceptionData->prepareLogData($message, $meta);
+
+            $this->client->report($data);
+
+            return true;
+        }catch (\Exception $exception){
+            Log::info('Lavabug Exception :'.$exception->getMessage());
             return false;
         }
-
-        $data = $this->exceptionData->prepare($exception);
-
-        $this->client->report($data);
-
-        return true;
     }
 
     /**

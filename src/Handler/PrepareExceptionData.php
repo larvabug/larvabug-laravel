@@ -27,59 +27,16 @@ class PrepareExceptionData
      * @author Syed Faisal <sfkazmi0@gmail.com>
      * @param \Throwable $exception
      */
-    public function prepare(\Throwable $exception)
+    public function prepareException(\Throwable $exception)
     {
-        return $this->getExceptionData($exception);
-    }
-
-    /**
-     * Prepare All exception data
-     *
-     * @param \Throwable $exception
-     * @return array
-     */
-    private function getExceptionData(\Throwable $exception)
-    {
-        $data = [];
+        $data = $this->getRequestInfo($exception);
 
         $data['exception'] = $exception->getMessage();
         $data['class'] = get_class($exception);
         $data['file'] = $exception->getFile();
-        $data['php_version'] = PHP_VERSION;
-        $data['server_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
-        $data['environment'] = App::environment();
-        $data['server_name'] = @gethostname();
-        $data['browser'] = $this->getUserBrowser();
-        $data['userOs'] = $this->getUserOS();
-        $data['host'] = Request::server('SERVER_NAME');
-        $data['method'] = Request::method();
-        $data['fullUrl'] = Request::fullUrl();
-        $data['url'] = Request::path();
-        $data['userIp'] = Request::ip();
         $data['line'] = $exception->getLine();
-        $data['date_time'] = date("Y-m-d H:i:s");
-        $data['session_id'] = Session::getId();
-        $data['storage'] = [
-            'SERVER' => [
-                'USER' => Request::server('USER'),
-                'HTTP_USER_AGENT' => Request::server('HTTP_USER_AGENT'),
-                'SERVER_PROTOCOL' => Request::server('SERVER_PROTOCOL'),
-                'SERVER_SOFTWARE' => Request::server('SERVER_SOFTWARE'),
-                'PHP_VERSION' => PHP_VERSION
-            ],
-            'GET' => $this->filterBlackList(Request::query()),
-            'POST' => $this->filterBlackList($_POST),
-            'FILE' => Request::file(),
-            'OLD' => $this->filterBlackList(Request::hasSession() ? Request::old() : []),
-            'COOKIE' => $this->filterBlackList(Request::cookie()),
-            'SESSION' => $this->filterBlackList(Request::hasSession() ? Session::all() : []),
-            'HEADERS' => $this->filterBlackList(Request::header()),
-        ];
-        $data['auth_user'] = $this->getAuthUser();
         $data['error'] = $exception->getTraceAsString();
         $data['trace_with_details'] = $this->prepareTraceData($exception->getTrace());
-
-        $data['storage'] = array_filter($data['storage']);
 
         $count = config('larvabug.lines_count');
 
@@ -103,6 +60,63 @@ class PrepareExceptionData
                 $data['exception'] = $matches[1];
             }
         }
+
+        return $data;
+    }
+
+    public function prepareLogData(string $message,array $meta = [])
+    {
+        $data = $this->getRequestInfo();
+        $data['exception'] = $message;
+        $data['class'] = 'Log Information';
+        $data['type'] = 'log';
+        $data['meta_data'] = $meta;
+
+        return $data;
+
+    }
+
+    /**
+     * Prepare All exception data
+     *
+     * @param \Throwable $exception
+     * @return array
+     */
+    private function getRequestInfo()
+    {
+        $data = [];
+
+        $data['php_version'] = PHP_VERSION;
+        $data['server_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
+        $data['environment'] = App::environment();
+        $data['server_name'] = @gethostname();
+        $data['browser'] = $this->getUserBrowser();
+        $data['userOs'] = $this->getUserOS();
+        $data['host'] = Request::server('SERVER_NAME');
+        $data['method'] = Request::method();
+        $data['fullUrl'] = Request::fullUrl();
+        $data['url'] = Request::path();
+        $data['userIp'] = Request::ip();
+        $data['date_time'] = date("Y-m-d H:i:s");
+        $data['session_id'] = Session::getId();
+        $data['storage'] = [
+            'SERVER' => [
+                'USER' => Request::server('USER'),
+                'HTTP_USER_AGENT' => Request::server('HTTP_USER_AGENT'),
+                'SERVER_PROTOCOL' => Request::server('SERVER_PROTOCOL'),
+                'SERVER_SOFTWARE' => Request::server('SERVER_SOFTWARE'),
+                'PHP_VERSION' => PHP_VERSION
+            ],
+            'GET' => $this->filterBlackList(Request::query()),
+            'POST' => $this->filterBlackList($_POST),
+            'FILE' => Request::file(),
+            'OLD' => $this->filterBlackList(Request::hasSession() ? Request::old() : []),
+            'COOKIE' => $this->filterBlackList(Request::cookie()),
+            'SESSION' => $this->filterBlackList(Request::hasSession() ? Session::all() : []),
+            'HEADERS' => $this->filterBlackList(Request::header()),
+        ];
+        $data['auth_user'] = $this->getAuthUser();
+        $data['storage'] = array_filter($data['storage']);
 
         return $data;
     }
