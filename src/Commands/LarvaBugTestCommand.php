@@ -3,6 +3,7 @@
 namespace LarvaBug\Commands;
 
 use Illuminate\Console\Command;
+use LarvaBug\Facade\LarvaBug;
 
 class LarvaBugTestCommand extends Command
 {
@@ -62,10 +63,10 @@ class LarvaBugTestCommand extends Command
             $this->info('3. ✗ [Larvabug] Project id and secret do not match our records');
         }
 
-        try {
-
+        try{
+            throw new \Exception('Larvabug Test Exception');
         }catch (\Exception $exception){
-            throw $exception;
+            LarvaBug::report($exception);
         }
 
     }
