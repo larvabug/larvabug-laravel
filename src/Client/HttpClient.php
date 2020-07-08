@@ -19,14 +19,14 @@ class HttpClient
     private $projectSecret;
 
     //Local
-    private const POST_EXCEPTION = 'http://larvabug.local/api/v1/exception';
-    private const VALIDATE_CREDENTIALS = 'http://larvabug.local/api/v1/validate/credentials';
-    private const POST_FEEDBACK = 'http://larvabug.local/api/v1/feedback/submit';
+//    private const POST_EXCEPTION = 'http://larvabug.local/api/v1/exception';
+//    private const VALIDATE_CREDENTIALS = 'http://larvabug.local/api/v1/validate/credentials';
+//    private const POST_FEEDBACK = 'http://larvabug.local/api/v1/feedback/submit';
 
     //Development
-//    private const POST_EXCEPTION = 'http://dev.larvabug.com/api/v1/exception';
-//    private const VALIDATE_CREDENTIALS = 'http://dev.larvabug.com/api/v1/validate/credentials';
-//    private const POST_FEEDBACK = 'http://dev.larvabug.com/api/v1/feedback/submit';
+    private const POST_EXCEPTION = 'http://dev.larvabug.com/api/v1/exception';
+    private const VALIDATE_CREDENTIALS = 'http://dev.larvabug.com/api/v1/validate/credentials';
+    private const POST_FEEDBACK = 'http://dev.larvabug.com/api/v1/feedback/submit';
 
 
     /**
