@@ -4,6 +4,10 @@
 namespace LarvaBug\Handler;
 
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\URL;
 use LarvaBug\Client\HttpClient;
 
 class LarvaBugExceptionHandler
@@ -16,6 +20,10 @@ class LarvaBugExceptionHandler
      * @var PrepareExceptionData
      */
     private $exceptionData;
+    /**
+     * @var string
+     */
+    private $lastExceptionId;
 
     /**
      * LarvaBugExceptionHandler constructor.
@@ -31,21 +39,53 @@ class LarvaBugExceptionHandler
         $this->exceptionData = $exceptionData;
     }
 
-    public function handle(\Throwable $exception)
+    /**
+     * Report exception to larvabug
+     *
+     * @param \Throwable $exception
+     * @return bool
+     */
+    public function report(\Throwable $exception)
     {
-        if (!$this->checkAppEnvironment()){
+        try {
+            if (!$this->checkAppEnvironment()) {
+                return false;
+            }
+
+            if ($this->skipError(get_class($exception))) {
+                return false;
+            }
+
+            $data = $this->exceptionData->prepareException($exception);
+
+            $this->client->report($data);
+
+            return true;
+        }catch (\Exception $exception){
+            Log::info('Lavabug Exception :'.$exception->getMessage());
             return false;
         }
+    }
 
-        if ($this->skipError(get_class($exception))){
+    /**
+     * Log details to larvabug
+     *
+     * @param $message
+     * @param array $meta
+     * @return bool
+     */
+    public function log($message, array $meta = [])
+    {
+        try {
+            $data = $this->exceptionData->prepareLogData($message, $meta);
+
+            $this->client->report($data);
+
+            return true;
+        }catch (\Exception $exception){
+            Log::info('Lavabug Exception :'.$exception->getMessage());
             return false;
         }
-
-        $data = $this->exceptionData->prepare($exception);
-
-        $this->client->report($data);
-
-        return true;
     }
 
     /**
@@ -53,7 +93,7 @@ class LarvaBugExceptionHandler
      *
      * @return bool
      */
-    public function checkAppEnvironment()
+    private function checkAppEnvironment()
     {
         if (!config('larvabug.environment')){
             return false;
@@ -72,7 +112,13 @@ class LarvaBugExceptionHandler
         return false;
     }
 
-    protected function skipError($class)
+    /**
+     * Error dont report, configured in config file
+     *
+     * @param $class
+     * @return bool
+     */
+    private function skipError($class)
     {
         if (in_array($class,config('larvabug.skip_errors'))){
             return true;
@@ -80,4 +126,64 @@ class LarvaBugExceptionHandler
 
         return false;
     }
+
+    /**
+     * Validate env credentials from larvabug
+     *
+     * @param array $credentials
+     * @return bool
+     */
+    public function validateCredentials(array $credentials)
+    {
+        return $this->client->validateCredentials($credentials);
+    }
+
+    /**
+     * Collect error feedback from user
+     *
+     * @return \Illuminate\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function collectFeedback()
+    {
+        if ($this->lastExceptionId) {
+            return redirect($this->feedbackUrl().'?exceptionId='.$this->lastExceptionId);
+        }
+
+        return redirect('/');
+    }
+
+    /**
+     * Get feedback url
+     *
+     * @return mixed
+     * @author Syed Faisal <sfkazmi0@gmail.com>
+     */
+    public function feedbackUrl()
+    {
+        return URL::to('larvabug-api/collect/feedback');
+    }
+
+    /**
+     * Submit user collected feedback
+     *
+     * @param $data
+     * @return bool
+     */
+    public function submitFeedback($data)
+    {
+        $this->client->submitFeedback($data);
+
+        return true;
+    }
+
+    public function setLastExceptionId(string $exceptionId)
+    {
+        return $this->lastExceptionId = $exceptionId;
+    }
+
+    public function getLastExceptionId()
+    {
+        return $this->lastExceptionId;
+    }
+
 }
