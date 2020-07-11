@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="130" src="http://larvabug.local/assets/images/larvabug-logo.png">
+  <img width="130" src="http://dev.larvabug.com/assets/images/larvabug-logo.png">
 </p>
 
 # LarvaBug
