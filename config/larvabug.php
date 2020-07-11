@@ -28,7 +28,7 @@ return [
      *
      */
     'skip_errors' =>  [
-        '\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class'
+        'Symfony\Component\HttpKernel\Exception\NotFoundHttpException',
     ],
 
     /*

@@ -127,6 +127,11 @@ class LarvaBugExceptionHandler
         return false;
     }
 
+    public function shouldCollectFeedback(\Exception $exception)
+    {
+        return !$this->skipError(get_class($exception));
+    }
+
     /**
      * Validate env credentials from larvabug
      *
