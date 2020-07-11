@@ -54,7 +54,7 @@ trait BootServices
     {
         if (function_exists('config_path')) {
             $this->publishes([
-                __DIR__ . '../../config/larvabug.php' => config_path('larvabug.php'),
+                __DIR__ . '/../../config/larvabug.php' => config_path('larvabug.php'),
             ]);
         }
     }
